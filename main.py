@@ -42,9 +42,7 @@ def generate_content(client: OpenAI, messages: list, args: object) -> None:
         temperature=0,
     )
     if not response.usage:
-        raise RuntimeError(
-            "Request has no token usage, perhaps failed"
-        )
+        raise RuntimeError("No token usage, perhaps failed")
 
     # Optionally print details of response
     if args.verbose:
@@ -53,15 +51,18 @@ def generate_content(client: OpenAI, messages: list, args: object) -> None:
         print(f"Response tokens: {response.usage.completion_tokens}")
 
     message = response.choices[0].message
-    if message.tool_calls:
-        # Print the desired function and args
-        for tool_call in message.tool_calls:
-            function_args = json.loads(tool_call.function.arguments or "{}")
-            print(f"Calling function: {tool_call.function.name}({function_args})")
-    else:
+    if not message.tool_calls:
         # Print the response
         print("Response:")
-        print(response.choices[0].message.content)
+        print(message.content)
+        return
+
+    # Print the desired function and args
+    for tool_call in message.tool_calls:
+        if tool_call.type != "function":
+            continue
+        function_args = json.loads(tool_call.function.arguments or "{}")
+        print(f"Calling function: {tool_call.function.name}({function_args})")
 
 
 if __name__ == "__main__":
