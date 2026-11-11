@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 def main():
     # Prompt the user for content
     parser = argparse.ArgumentParser(description="AI Code Assistant")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
     parser.add_argument("user_prompt", type=str, help="Prompt to send to the LLM")
     args = parser.parse_args()
 
@@ -25,10 +26,10 @@ def main():
     messages=[
         {"role": "user", "content": args.user_prompt}
     ]
-    generate_content(client, messages)
+    generate_content(client, messages, args)
 
 
-def generate_content(client: OpenAI, messages: list) -> None:
+def generate_content(client: OpenAI, messages: list, args: object) -> None:
     # Create a chat and save the response
     response = client.chat.completions.create(
         model="openrouter/free",
@@ -39,9 +40,11 @@ def generate_content(client: OpenAI, messages: list) -> None:
             "Request has no token usage, perhaps failed"
         )
 
-    # Print the token usage
-    print(f"Prompt tokens: {response.usage.prompt_tokens}")
-    print(f"Response tokens: {response.usage.completion_tokens}")
+    # Optionally print details of response
+    if args.verbose:
+        print(f"User prompt: {args.user_prompt}")
+        print(f"Prompt tokens: {response.usage.prompt_tokens}")
+        print(f"Response tokens: {response.usage.completion_tokens}")
     # Print the response
     print("Response:")
     print(response.choices[0].message.content)
