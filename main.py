@@ -2,6 +2,7 @@ import os
 import argparse
 from openai import OpenAI
 from dotenv import load_dotenv
+from prompts import system_prompt
 
 
 def main():
@@ -24,6 +25,7 @@ def main():
 
     # Create a list of messages
     messages=[
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": args.user_prompt}
     ]
     generate_content(client, messages, args)
@@ -34,6 +36,7 @@ def generate_content(client: OpenAI, messages: list, args: object) -> None:
     response = client.chat.completions.create(
         model="openrouter/free",
         messages=messages,
+        temperature=0,
     )
     if not response.usage:
         raise RuntimeError(
